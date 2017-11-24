@@ -8,3 +8,5 @@ Thursday,23rd November 2017
 Friday,24th November 2017
 
 1. Read each and every parameters on Deployment YAML file.
+2. Deployed a sample application using YAML file.
+3. Gone through the Infrastructure components and core concepts.
