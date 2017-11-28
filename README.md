@@ -71,9 +71,36 @@ Builds
               
   11. 4. Health checks
            1. Liveness Probe : A liveness probe checks if the container in which it is configured is still running. If the                                    liveness probe fails,the kubelet kills the container, which will be subjected to its restart                                  policy. Set a liveness check by configuring the template.spec.containers.livenessprobe stanza                                  of a pod configuration.
-           2. Readiness Probe
+           2. Readiness Probe : A readiness probe determines if a container is ready to service requests. If the readiness                                     probe fails a container,the endpoints controller ensures the container has its IP address                                     removed from the endpoints of all services. A readiness probe can be used to signal to the                                     endpoints controller that even though a container is running, it should not receive any                                       traffic from a proxy. Set a readiness check by configuring the                                                                 template.spec.containers.readinessprobe stanza of a pod configuration.
+           Both probes can be configured in three ways :
+                    1. HTTP checks
+                            readinessProbe:
+                                      httpGet:
+                                        path: /healthz
+                                        port: 8080
+                                      initialDelaySeconds: 15
+                                      timeoutSeconds: 1
+                     2. Container Execution Checks :
+                            ...
+                                  livenessProbe:
+                                    exec:
+                                      command:
+                                      - cat
+                                      - /tmp/health
+                                    initialDelaySeconds: 15
+                                    timeoutSeconds: 1
+                      3. TCP Socket Checks :
+                            ...
+                                    livenessProbe:
+                                      tcpSocket:
+                                        port: 8080
+                                      initialDelaySeconds: 15
+                                      timeoutSeconds: 1
+                                    ...
+                          
+                   
   
-  
+          
   
   
   
