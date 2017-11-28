@@ -49,9 +49,40 @@ Builds
   
         1. Deployment Configuration
         2. Deployment Triggers
-        3. Rolling Deployment Strategy
+        3. Rolling Deployment Strategy : The Rolling strategy is the default strategy used if no strategy is specified on a                                            deployment configuration.
+        
+                                          "strategy": {
+                                                        "type": "Rolling",
+                                                        "rollingParams": {
+                                                          "timeoutSeconds": 120, 
+                                                          "maxSurge": "20%", 
+                                                          "maxUnavailable": "10%" 
+                                                          "pre": {}, 
+                                                          "post": {}
+                                                        }
+                                                      }
+           
+                                                      
+The Rolling Strategy will :
+
+Execute any pre-lifecycle hooks.
+
+Scale up the new deployment based on the surge configuration.
+
+Scale down the old deployment based on the max unavailable configuration.
+
+Repeat this scaling until the new deployment has reached the desired replica count and the old deployment has been scaled to zero.
+
+Execute any post lifecycle hook.
         4. Cannary Deployment Strategy
-        5. Recreate Deployment Strategy
+        5. Recreate Deployment Strategy :
+                              "strategy": {
+                                "type": "Recreate",
+                                "recreateParams": { 
+                                  "pre": {}, 
+                                  "post": {}
+                                }
+                              }
         6. Blue-Green Deployent Strategy
         7. A/B Deployment strategy
         8. Lifecycle Hooks :
