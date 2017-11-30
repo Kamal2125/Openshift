@@ -128,14 +128,103 @@ Execute any post lifecycle hook.
                                       initialDelaySeconds: 15
                                       timeoutSeconds: 1
                                     ...
-                          
-                   
+  12. Services
   
+      1. Services :
+            A Kubernetes service serves as an internal load balancer. It identifies a set of replicated
+pods in order to proxy the connections it receives to them. Backing pods can be added to
+or removed from a service arbitrarily while the service remains consistently available, enabling
+anything that depends on the service to refer to it at a consistent address. The default
+service clusterIP addresses are from the OpenShift Origin internal network and they are
+used to permit pods to access each other.
+To permit external access to the service, additional externalIP and ingressIP addresses that
+are external to the cluster can be assigned to the service. These externalIP addresses can
+also be virtual IP addresses that provide highly available access to the service.
+     2. Service externalIPs : 
+     The user can configure IP addresses that are external to the cluster.
+The externalIPs must be selected by the cluster adminitrators from the ExternalIPNetworkCIDRs
+range configured in master-config.yaml file. When master-config.yaml is changed, the
+master service must be restarted.
+
+# Sample ExternalIPNetworkCIDR /etc/origin/master/master-config.yaml
+networkConfig:
+  ExternalIPNetworkCIDR: 172.47.0.0/24
+  
+  # Service externalIPs Definition (JSON)
+{
+    "kind": "Service",
+    "apiVersion": "v1",
+    "metadata": {
+        "name": "my-service"
+    },
+    "spec": {
+        "selector": {
+            "app": "MyApp"
+        },
+        "ports": [
+            {
+                "name": "http",
+                "protocol": "TCP",
+                "port": 80,
+                "targetPort": 9376
+            }
+        ],
+        "externalIPs" : [
+            "80.11.12.10"        
+        ]
+    }
+}
+
+"80.11.12.10"           List of External IP addresses on which the port is exposed. In addition to
+the internal IP addresses)
+  3. Service IngressIPs : 
+    In non-cloud clusters, externalIP addresses can be automatically assigned from a pool of addresses.
+The pool is configured in /etc/origin/master/master-config.yaml file. After changing this file,
+restart the master service.
+The ingressIPNetworkCIDR is set to 172.29.0.0/16 by default. If the cluster environment is
+not already using this private range, use the default range or set a custom range.
+
+  If you are using high availability, then this range must be less than 256 addresses.
+
+  # Sample ingressIPNetworkCIDR /etc/origin/master/master-config.yaml
+networkConfig:
+  ingressIPNetworkCIDR: 172.29.0.0/16
+
+  4. Service Nodeport : 
+  
+    Setting the service type=NodePort will allocate a port from a flag-configured range (default:
+30000-32767), and each node will proxy that port (the same port number on every node)
+into your service.
+The selected port will be reported in the service configuration, under
+spec.ports[*].nodePort.
+To specify a custom port just place the port number in the nodePort field. The custom
+port number must be in the configured range for nodePorts. When 'master-config.yaml' is
+changed the master service must be restarted
+
+        # Sample servicesNodePortRange /etc/origin/master/master-config.yaml
+kubernetesMasterConfig:
+
+  servicesNodePortRange: ""
+  
+  The service will be visible as both the <NodeIP>:spec.ports[].nodePort and
+spec.clusterIp:spec.ports[].port
+  
+  5. Service Proxy Node :
+      
+        OpenShift Origin has two different implementations of the service-routing infrastructure:
+        
+          ● iptables-based
+          ● user space
           
-  
-  
-  
-  
-  
-  
-  
+The default implementation is entirely iptables-based, and uses probabilistic iptables rewriting
+rules to distribute incoming service connections between the endpoint pods. The older
+implementation uses a user space process to accept incoming connections and then proxy
+traffic between the client and one of the endpoint pods.
+The iptables-based implementation is much more efficient, but it requires that all endpoints
+are always able to accept connections; the user space implementation is slower, but can try
+multiple endpoints in turn until it finds one that works. If you have good readiness checks
+(or generally reliable nodes and pods), then the iptables-based service proxy is the best
+choice. Otherwise, you can enable the user space-based proxy when installing, or after deploying
+the cluster by editing the node configuration file.
+
+      
